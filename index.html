@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sofia Bet - Aposte no Peso da Sofia! 👶💕</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        .animate-slideIn {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .animate-slideDown {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <!-- Notification -->
+    <div id="notification" class="hidden fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-semibold animate-slideIn"></div>
+
+    <!-- Loading -->
+    <div id="loading" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <i class="fas fa-baby text-6xl text-pink-500 animate-pulse-slow"></i>
+            <p class="mt-4 text-lg font-semibold text-gray-700">Carregando...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8 md:mb-12 relative">
+                <div class="absolute inset-0 flex items-center justify-center opacity-10">
+                    <i class="fas fa-star text-9xl text-pink-400"></i>
+                </div>
+                <div class="relative">
+                    <h1 class="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 mb-3 tracking-tight">
+                        SOFIA BET
+                    </h1>
+                    <p class="text-xl md:text-2xl text-gray-700 font-semibold mb-2">
+                        Aposte no Peso da Sofia! 👶💕
+                    </p>
+                    <p class="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
+                        Faça sua aposta e concorra ao prêmio! Quem acertar ou chegar mais perto leva tudo! 🎯
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-pink-200 hover:scale-105 transition-transform">
+                    <i class="fas fa-users text-3xl text-pink-500 mb-2"></i>
+                    <p class="text-3xl font-black text-gray-800" id="totalBets">0</p>
+                    <p class="text-sm text-gray-600 font-semibold">Apostas</p>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-purple-200 hover:scale-105 transition-transform">
+                    <i class="fas fa-dollar-sign text-3xl text-purple-500 mb-2"></i>
+                    <p class="text-3xl font-black text-gray-800" id="totalAmount">R$ 0,00</p>
+                    <p class="text-sm text-gray-600 font-semibold">Arrecadado</p>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-pink-200 hover:scale-105 transition-transform">
+                    <i class="fas fa-weight text-3xl text-pink-500 mb-2"></i>
+                    <p class="text-3xl font-black text-gray-800" id="avgWeight">0,00kg</p>
+                    <p class="text-sm text-gray-600 font-semibold">Média</p>
+                </div>
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-purple-200 hover:scale-105 transition-transform">
+                    <i class="fas fa-chart-line text-3xl text-purple-500 mb-2"></i>
+                    <p class="text-3xl font-black text-gray-800" id="rangeCount">5</p>
+                    <p class="text-sm text-gray-600 font-semibold">Faixas</p>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <!-- Betting Options -->
+                <div class="md:col-span-2">
+                    <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-2xl border-2 border-pink-200">
+                        <h2 class="text-2xl md:text-3xl font-black text-gray-800 mb-6 flex items-center gap-3">
+                            <i class="fas fa-weight text-pink-500"></i>
+                            Faixas de Peso
+                        </h2>
+                        
+                        <div id="weightRanges" class="space-y-4 mb-8">
+                            <!-- Weight ranges will be populated here -->
+                        </div>
+
+                        <button onclick="toggleForm()" class="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white font-black text-xl py-4 rounded-xl hover:scale-105 transition-transform shadow-lg hover:shadow-xl">
+                            <span id="formButtonText">🎲 Fazer Aposta</span>
+                        </button>
+
+                        <!-- Betting Form -->
+                        <form id="betForm" class="hidden mt-6 space-y-4 animate-slideDown">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Seu Nome</label>
+                                <input
+                                    type="text"
+                                    id="betName"
+                                    required
+                                    class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none font-semibold"
+                                    placeholder="Digite seu nome"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Peso (em gramas)</label>
+                                <input
+                                    type="number"
+                                    id="betWeight"
+                                    required
+                                    min="2000"
+                                    max="5000"
+                                    class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none font-semibold"
+                                    placeholder="Ex: 3450"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">Peso entre 2.000g (2kg) e 5.000g (5kg)</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Valor da Aposta (R$)</label>
+                                <input
+                                    type="number"
+                                    id="betAmount"
+                                    required
+                                    step="0.01"
+                                    min="0.01"
+                                    class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none font-semibold"
+                                    placeholder="Ex: 20.00"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                class="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-lg py-3 rounded-xl hover:scale-105 transition-transform shadow-lg"
+                            >
+                                ✓ Confirmar Aposta
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="space-y-6">
+                    <!-- Top Bets -->
+                    <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border-2 border-purple-200">
+                        <h3 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-crown text-yellow-500"></i>
+                            Top Apostas
+                        </h3>
+                        <div id="topBets" class="space-y-3">
+                            <p class="text-gray-500 text-center py-4">Seja o primeiro!</p>
+                        </div>
+                    </div>
+
+                    <!-- All Bets -->
+                    <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border-2 border-pink-200">
+                        <h3 class="text-xl font-black text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-trophy text-pink-500"></i>
+                            Todas as Apostas
+                        </h3>
+                        <div id="allBets" class="space-y-2 max-h-96 overflow-y-auto">
+                            <p class="text-gray-500 text-center py-4">Nenhuma aposta ainda</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-gray-600 text-sm">
+                <p class="font-semibold">💕 Bem-vinda Sofia! 💕</p>
+                <p class="text-xs mt-2">Que venha com muita saúde e felicidade!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // CONFIGURAÇÃO DO FIREBASE - VOCÊ VAI PREENCHER ISSO DEPOIS
+        const firebaseConfig = {
+            apiKey: "AIzaSyDxFQSMjKvql8gbhpLD-NoAmxy6GP3nUc4",
+            authDomain: "sofia-bet.firebaseapp.com",
+            projectId: "sofia-bet",
+            storageBucket: "sofia-bet.firebasestorage.app",
+            messagingSenderId: "661304278565",
+            appId: "1:661304278565:web:fb8dd1c6a75ee95e80c9cc",
+            measurementId: "G-7HCH4EGZ57"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Faixas de peso
+        const weightRanges = [
+            { min: 2500, max: 2999, label: '2,5kg - 2,9kg', odds: '4.5x' },
+            { min: 3000, max: 3299, label: '3,0kg - 3,2kg', odds: '2.8x' },
+            { min: 3300, max: 3599, label: '3,3kg - 3,5kg', odds: '2.0x' },
+            { min: 3600, max: 3899, label: '3,6kg - 3,8kg', odds: '2.5x' },
+            { min: 3900, max: 4200, label: '3,9kg - 4,2kg', odds: '3.5x' }
+        ];
+
+        let allBets = [];
+
+        // Função para mostrar notificação
+        window.showNotification = function(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-semibold animate-slideIn ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Função para toggle do formulário
+        window.toggleForm = function() {
+            const form = document.getElementById('betForm');
+            const buttonText = document.getElementById('formButtonText');
+            
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                buttonText.textContent = '✕ Fechar';
+            } else {
+                form.classList.add('hidden');
+                buttonText.textContent = '🎲 Fazer Aposta';
+            }
+        }
+
+        // Renderizar faixas de peso
+        function renderWeightRanges() {
+            const container = document.getElementById('weightRanges');
+            
+            const rangeStats = weightRanges.map(range => {
+                const count = allBets.filter(bet => 
+                    bet.weight >= range.min && bet.weight <= range.max
+                ).length;
+                const percentage = allBets.length > 0 ? (count / allBets.length) * 100 : 0;
+                
+                return { ...range, count, percentage };
+            });
+
+            container.innerHTML = rangeStats.map(range => `
+                <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 border-2 border-pink-100 hover:border-pink-300 transition-all hover:shadow-md">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl font-black text-gray-800">${range.label}</span>
+                            <span class="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                ${range.odds}
+                            </span>
+                        </div>
+                        <span class="text-lg font-bold text-purple-600">${range.count} aposta${range.count !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="w-full bg-white rounded-full h-3 overflow-hidden">
+                        <div 
+                            class="bg-gradient-to-r from-pink-500 to-purple-500 h-full rounded-full transition-all duration-500"
+                            style="width: ${range.percentage}%"
+                        ></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Atualizar estatísticas
+        function updateStats() {
+            const totalBets = allBets.length;
+            const totalAmount = allBets.reduce((sum, bet) => sum + bet.amount, 0);
+            const avgWeight = totalBets > 0 ? allBets.reduce((sum, bet) => sum + bet.weight, 0) / totalBets : 0;
+
+            document.getElementById('totalBets').textContent = totalBets;
+            document.getElementById('totalAmount').textContent = `R$ ${totalAmount.toFixed(2)}`;
+            document.getElementById('avgWeight').textContent = `${(avgWeight / 1000).toFixed(2)}kg`;
+        }
+
+        // Renderizar top apostas
+        function renderTopBets() {
+            const topBets = [...allBets].sort((a, b) => b.amount - a.amount).slice(0, 3);
+            const container = document.getElementById('topBets');
+
+            if (topBets.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Seja o primeiro!</p>';
+                return;
+            }
+
+            const medals = ['🥇', '🥈', '🥉'];
+            const gradients = [
+                'from-yellow-100 to-yellow-200 border-yellow-400',
+                'from-gray-100 to-gray-200 border-gray-400',
+                'from-orange-100 to-orange-200 border-orange-400'
+            ];
+
+            container.innerHTML = topBets.map((bet, index) => `
+                <div class="p-4 rounded-xl bg-gradient-to-r ${gradients[index]} border-2">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl font-black">${medals[index]}</span>
+                        <div class="flex-1">
+                            <p class="font-bold text-gray-800">${bet.name}</p>
+                            <p class="text-sm text-gray-600">${(bet.weight / 1000).toFixed(2)}kg</p>
+                        </div>
+                        <p class="text-lg font-black text-gray-800">R$ ${bet.amount.toFixed(2)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar todas as apostas
+        function renderAllBets() {
+            const container = document.getElementById('allBets');
+
+            if (allBets.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma aposta ainda</p>';
+                return;
+            }
+
+            const sortedBets = [...allBets].sort((a, b) => b.timestamp - a.timestamp);
+
+            container.innerHTML = sortedBets.map(bet => {
+                const range = weightRanges.find(r => bet.weight >= r.min && bet.weight <= r.max);
+                
+                return `
+                    <div class="p-3 bg-pink-50 rounded-lg border border-pink-200 hover:bg-pink-100 transition-colors">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-gray-800">${bet.name}</p>
+                                <p class="text-sm text-gray-600">
+                                    ${(bet.weight / 1000).toFixed(2)}kg
+                                    ${range ? `<span class="ml-2 text-xs bg-pink-200 px-2 py-0.5 rounded-full">${range.odds}</span>` : ''}
+                                </p>
+                            </div>
+                            <p class="text-sm font-bold text-purple-600">R$ ${bet.amount.toFixed(2)}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Atualizar interface
+        function updateUI() {
+            updateStats();
+            renderWeightRanges();
+            renderTopBets();
+            renderAllBets();
+        }
+
+        // Escutar mudanças no Firebase
+        const q = query(collection(db, "bets"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            allBets = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            
+            updateUI();
+            
+            // Esconder loading e mostrar conteúdo
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        });
+
+        // Submeter aposta
+        document.getElementById('betForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('betName').value.trim();
+            const weight = parseInt(document.getElementById('betWeight').value);
+            const amount = parseFloat(document.getElementById('betAmount').value);
+
+            if (!name || !weight || !amount) {
+                showNotification('Preencha todos os campos!', 'error');
+                return;
+            }
+
+            if (weight < 2000 || weight > 5000) {
+                showNotification('Peso deve estar entre 2.000g e 5.000g', 'error');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "bets"), {
+                    name: name,
+                    weight: weight,
+                    amount: amount,
+                    timestamp: Date.now()
+                });
+
+                showNotification(`Aposta registrada! Boa sorte, ${name}! 🍀`, 'success');
+                
+                // Limpar formulário
+                document.getElementById('betName').value = '';
+                document.getElementById('betWeight').value = '';
+                document.getElementById('betAmount').value = '';
+                
+                toggleForm();
+            } catch (error) {
+                console.error('Erro ao salvar aposta:', error);
+                showNotification('Erro ao salvar aposta. Tente novamente!', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

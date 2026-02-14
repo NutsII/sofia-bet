@@ -169,11 +169,27 @@
                                     placeholder="Ex: 20.00"
                                 />
                             </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">WhatsApp (opcional)</label>
+                                <input
+                                    type="tel"
+                                    id="betWhatsapp"
+                                    class="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none font-semibold"
+                                    placeholder="Ex: 19999999999"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">Para confirmarmos o pagamento</p>
+                            </div>
+                            <div class="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                                <p class="text-sm font-bold text-gray-700 mb-2">💰 Como pagar:</p>
+                                <p class="text-xs text-gray-600 mb-2">Faça o PIX para:</p>
+                                <p class="text-sm font-black text-purple-600">CHAVE_PIX_AQUI</p>
+                                <p class="text-xs text-gray-500 mt-2">Sua aposta será aprovada após confirmação do pagamento!</p>
+                            </div>
                             <button
                                 type="submit"
                                 class="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-black text-lg py-3 rounded-xl hover:scale-105 transition-transform shadow-lg"
                             >
-                                ✓ Confirmar Aposta
+                                ✓ Registrar Aposta
                             </button>
                         </form>
                     </div>
@@ -220,13 +236,12 @@
 
         // CONFIGURAÇÃO DO FIREBASE - VOCÊ VAI PREENCHER ISSO DEPOIS
         const firebaseConfig = {
-            apiKey: "AIzaSyDxFQSMjKvql8gbhpLD-NoAmxy6GP3nUc4",
-            authDomain: "sofia-bet.firebaseapp.com",
-            projectId: "sofia-bet",
-            storageBucket: "sofia-bet.firebasestorage.app",
-            messagingSenderId: "661304278565",
-            appId: "1:661304278565:web:fb8dd1c6a75ee95e80c9cc",
-            measurementId: "G-7HCH4EGZ57"
+            apiKey: "SUA_API_KEY_AQUI",
+            authDomain: "SEU_AUTH_DOMAIN_AQUI",
+            projectId: "SEU_PROJECT_ID_AQUI",
+            storageBucket: "SEU_STORAGE_BUCKET_AQUI",
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID_AQUI",
+            appId: "SEU_APP_ID_AQUI"
         };
 
         // Inicializar Firebase
@@ -387,13 +402,16 @@
             renderAllBets();
         }
 
-        // Escutar mudanças no Firebase
+        // Escutar mudanças no Firebase - APENAS APOSTAS APROVADAS
         const q = query(collection(db, "bets"), orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
-            allBets = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            // Filtrar apenas apostas aprovadas
+            allBets = snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .filter(bet => bet.status === 'approved');
             
             updateUI();
             
@@ -409,9 +427,10 @@
             const name = document.getElementById('betName').value.trim();
             const weight = parseInt(document.getElementById('betWeight').value);
             const amount = parseFloat(document.getElementById('betAmount').value);
+            const whatsapp = document.getElementById('betWhatsapp').value.trim();
 
             if (!name || !weight || !amount) {
-                showNotification('Preencha todos os campos!', 'error');
+                showNotification('Preencha todos os campos obrigatórios!', 'error');
                 return;
             }
 
@@ -425,15 +444,18 @@
                     name: name,
                     weight: weight,
                     amount: amount,
+                    whatsapp: whatsapp || '',
+                    status: 'pending', // Aposta começa como pendente
                     timestamp: Date.now()
                 });
 
-                showNotification(`Aposta registrada! Boa sorte, ${name}! 🍀`, 'success');
+                showNotification(`Aposta registrada, ${name}! Aguarde aprovação após pagamento. 💰`, 'success');
                 
                 // Limpar formulário
                 document.getElementById('betName').value = '';
                 document.getElementById('betWeight').value = '';
                 document.getElementById('betAmount').value = '';
+                document.getElementById('betWhatsapp').value = '';
                 
                 toggleForm();
             } catch (error) {

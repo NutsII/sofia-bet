@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Sofia Bet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .animate-slideIn {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <!-- Notification -->
+    <div id="notification" class="hidden fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-semibold animate-slideIn"></div>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-md w-full border border-white/20 shadow-2xl">
+            <div class="text-center mb-8">
+                <i class="fas fa-user-shield text-6xl text-purple-400 mb-4"></i>
+                <h1 class="text-3xl font-black text-white mb-2">Painel Admin</h1>
+                <p class="text-gray-300">Sofia Bet</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-300 mb-2">Senha de Administrador</label>
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        required
+                        class="w-full px-4 py-3 rounded-xl border-2 border-purple-400 focus:border-purple-600 focus:outline-none font-semibold bg-white/10 text-white placeholder-gray-400"
+                        placeholder="Digite a senha"
+                    />
+                </div>
+                <button
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black text-lg py-3 rounded-xl hover:scale-105 transition-transform shadow-lg"
+                >
+                    🔓 Entrar
+                </button>
+            </form>
+            <p class="text-xs text-gray-400 mt-4 text-center">Senha padrão: admin123 (altere no código)</p>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="hidden p-4 md:p-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-4xl font-black text-white mb-2">🛡️ Painel Admin</h1>
+                    <p class="text-gray-300">Gerencie as apostas da Sofia</p>
+                </div>
+                <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Sair
+                </button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <i class="fas fa-clock text-3xl text-yellow-400 mb-2"></i>
+                    <p class="text-3xl font-black text-white" id="pendingCount">0</p>
+                    <p class="text-sm text-gray-300 font-semibold">Pendentes</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <i class="fas fa-check-circle text-3xl text-green-400 mb-2"></i>
+                    <p class="text-3xl font-black text-white" id="approvedCount">0</p>
+                    <p class="text-sm text-gray-300 font-semibold">Aprovadas</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <i class="fas fa-times-circle text-3xl text-red-400 mb-2"></i>
+                    <p class="text-3xl font-black text-white" id="rejectedCount">0</p>
+                    <p class="text-sm text-gray-300 font-semibold">Rejeitadas</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <i class="fas fa-dollar-sign text-3xl text-purple-400 mb-2"></i>
+                    <p class="text-3xl font-black text-white" id="totalApprovedAmount">R$ 0</p>
+                    <p class="text-sm text-gray-300 font-semibold">Arrecadado</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+                    <i class="fas fa-hourglass-half text-3xl text-orange-400 mb-2"></i>
+                    <p class="text-3xl font-black text-white" id="pendingAmount">R$ 0</p>
+                    <p class="text-sm text-gray-300 font-semibold">Pendente</p>
+                </div>
+            </div>
+
+            <!-- Pending Bets -->
+            <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-6 md:p-8 border border-white/20 mb-8">
+                <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                    <i class="fas fa-clock text-yellow-400"></i>
+                    Apostas Pendentes de Aprovação
+                </h2>
+                <div id="pendingBets" class="space-y-4">
+                    <p class="text-gray-400 text-center py-8">Nenhuma aposta pendente</p>
+                </div>
+            </div>
+
+            <!-- Approved Bets -->
+            <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-6 md:p-8 border border-white/20 mb-8">
+                <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                    <i class="fas fa-check-circle text-green-400"></i>
+                    Apostas Aprovadas
+                </h2>
+                <div id="approvedBets" class="space-y-4 max-h-96 overflow-y-auto">
+                    <p class="text-gray-400 text-center py-8">Nenhuma aposta aprovada ainda</p>
+                </div>
+            </div>
+
+            <!-- Rejected Bets -->
+            <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-6 md:p-8 border border-white/20">
+                <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                    <i class="fas fa-times-circle text-red-400"></i>
+                    Apostas Rejeitadas
+                </h2>
+                <div id="rejectedBets" class="space-y-4 max-h-96 overflow-y-auto">
+                    <p class="text-gray-400 text-center py-8">Nenhuma aposta rejeitada</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // CONFIGURAÇÃO DO FIREBASE - MESMA DO INDEX.HTML
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY_AQUI",
+            authDomain: "SEU_AUTH_DOMAIN_AQUI",
+            projectId: "SEU_PROJECT_ID_AQUI",
+            storageBucket: "SEU_STORAGE_BUCKET_AQUI",
+            messagingSenderId: "SEU_MESSAGING_SENDER_ID_AQUI",
+            appId: "SEU_APP_ID_AQUI"
+        };
+
+        // SENHA DE ADMIN - ALTERE AQUI!
+        const ADMIN_PASSWORD = "admin123";
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let allBets = [];
+        let isLoggedIn = false;
+
+        // Função para mostrar notificação
+        window.showNotification = function(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-semibold animate-slideIn ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                isLoggedIn = true;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                showNotification('Login realizado com sucesso! 🎉', 'success');
+                loadBets();
+            } else {
+                showNotification('Senha incorreta! ❌', 'error');
+            }
+        });
+
+        // Logout
+        window.logout = function() {
+            isLoggedIn = false;
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // Carregar apostas
+        function loadBets() {
+            const q = query(collection(db, "bets"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                allBets = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                updateUI();
+            });
+        }
+
+        // Aprovar aposta
+        window.approveBet = async function(betId) {
+            try {
+                await updateDoc(doc(db, "bets", betId), {
+                    status: 'approved',
+                    approvedAt: Date.now()
+                });
+                showNotification('Aposta aprovada! ✅', 'success');
+            } catch (error) {
+                console.error('Erro ao aprovar:', error);
+                showNotification('Erro ao aprovar aposta', 'error');
+            }
+        }
+
+        // Rejeitar aposta
+        window.rejectBet = async function(betId) {
+            if (!confirm('Tem certeza que deseja rejeitar esta aposta?')) return;
+            
+            try {
+                await updateDoc(doc(db, "bets", betId), {
+                    status: 'rejected',
+                    rejectedAt: Date.now()
+                });
+                showNotification('Aposta rejeitada', 'success');
+            } catch (error) {
+                console.error('Erro ao rejeitar:', error);
+                showNotification('Erro ao rejeitar aposta', 'error');
+            }
+        }
+
+        // Deletar aposta
+        window.deleteBet = async function(betId) {
+            if (!confirm('Tem certeza que deseja DELETAR permanentemente esta aposta?')) return;
+            
+            try {
+                await deleteDoc(doc(db, "bets", betId));
+                showNotification('Aposta deletada permanentemente', 'success');
+            } catch (error) {
+                console.error('Erro ao deletar:', error);
+                showNotification('Erro ao deletar aposta', 'error');
+            }
+        }
+
+        // Copiar WhatsApp
+        window.copyWhatsapp = function(whatsapp) {
+            navigator.clipboard.writeText(whatsapp);
+            showNotification('WhatsApp copiado!', 'success');
+        }
+
+        // Atualizar UI
+        function updateUI() {
+            const pending = allBets.filter(b => b.status === 'pending');
+            const approved = allBets.filter(b => b.status === 'approved');
+            const rejected = allBets.filter(b => b.status === 'rejected');
+
+            // Stats
+            document.getElementById('pendingCount').textContent = pending.length;
+            document.getElementById('approvedCount').textContent = approved.length;
+            document.getElementById('rejectedCount').textContent = rejected.length;
+            
+            const approvedAmount = approved.reduce((sum, bet) => sum + bet.amount, 0);
+            const pendingAmount = pending.reduce((sum, bet) => sum + bet.amount, 0);
+            document.getElementById('totalApprovedAmount').textContent = `R$ ${approvedAmount.toFixed(2)}`;
+            document.getElementById('pendingAmount').textContent = `R$ ${pendingAmount.toFixed(2)}`;
+
+            // Render lists
+            renderPendingBets(pending);
+            renderApprovedBets(approved);
+            renderRejectedBets(rejected);
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('pt-BR');
+        }
+
+        function renderPendingBets(bets) {
+            const container = document.getElementById('pendingBets');
+            
+            if (bets.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma aposta pendente</p>';
+                return;
+            }
+
+            container.innerHTML = bets.map(bet => `
+                <div class="bg-yellow-500/20 border-2 border-yellow-400 rounded-xl p-6 hover:bg-yellow-500/30 transition-colors">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-2xl font-black text-white">${bet.name}</h3>
+                                <span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">PENDENTE</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-3">
+                                <div>
+                                    <p class="text-gray-400 text-sm">Peso apostado:</p>
+                                    <p class="text-white font-bold text-lg">${(bet.weight / 1000).toFixed(2)}kg</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Valor:</p>
+                                    <p class="text-green-400 font-bold text-lg">R$ ${bet.amount.toFixed(2)}</p>
+                                </div>
+                                ${bet.whatsapp ? `
+                                <div>
+                                    <p class="text-gray-400 text-sm">WhatsApp:</p>
+                                    <button onclick="copyWhatsapp('${bet.whatsapp}')" class="text-white font-bold hover:text-purple-400 transition-colors">
+                                        ${bet.whatsapp} <i class="fas fa-copy ml-1"></i>
+                                    </button>
+                                </div>
+                                ` : ''}
+                                <div>
+                                    <p class="text-gray-400 text-sm">Data:</p>
+                                    <p class="text-white font-bold text-sm">${formatDate(bet.timestamp)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button 
+                            onclick="approveBet('${bet.id}')"
+                            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+                        >
+                            ✓ Aprovar
+                        </button>
+                        <button 
+                            onclick="rejectBet('${bet.id}')"
+                            class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+                        >
+                            ✗ Rejeitar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderApprovedBets(bets) {
+            const container = document.getElementById('approvedBets');
+            
+            if (bets.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma aposta aprovada ainda</p>';
+                return;
+            }
+
+            container.innerHTML = bets.map(bet => `
+                <div class="bg-green-500/20 border border-green-400 rounded-xl p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-lg font-bold text-white">${bet.name}</h3>
+                                <span class="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">APROVADA</span>
+                            </div>
+                            <div class="flex gap-4 text-sm">
+                                <span class="text-gray-300">${(bet.weight / 1000).toFixed(2)}kg</span>
+                                <span class="text-green-400 font-bold">R$ ${bet.amount.toFixed(2)}</span>
+                                ${bet.whatsapp ? `<span class="text-gray-400">${bet.whatsapp}</span>` : ''}
+                            </div>
+                        </div>
+                        <button 
+                            onclick="deleteBet('${bet.id}')"
+                            class="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRejectedBets(bets) {
+            const container = document.getElementById('rejectedBets');
+            
+            if (bets.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-8">Nenhuma aposta rejeitada</p>';
+                return;
+            }
+
+            container.innerHTML = bets.map(bet => `
+                <div class="bg-red-500/20 border border-red-400 rounded-xl p-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="text-lg font-bold text-white">${bet.name}</h3>
+                                <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">REJEITADA</span>
+                            </div>
+                            <div class="flex gap-4 text-sm">
+                                <span class="text-gray-300">${(bet.weight / 1000).toFixed(2)}kg</span>
+                                <span class="text-red-400 font-bold">R$ ${bet.amount.toFixed(2)}</span>
+                                ${bet.whatsapp ? `<span class="text-gray-400">${bet.whatsapp}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                onclick="approveBet('${bet.id}')"
+                                class="bg-green-500/20 hover:bg-green-500 text-green-400 hover:text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+                            >
+                                ✓ Aprovar
+                            </button>
+                            <button 
+                                onclick="deleteBet('${bet.id}')"
+                                class="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

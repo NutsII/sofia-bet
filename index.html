@@ -90,6 +90,21 @@
                 </div>
             </div>
 
+            <!-- Info Banner sobre Odds Dinâmicas -->
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 md:p-6 mb-8 shadow-xl border-2 border-purple-400">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-chart-line text-3xl text-white"></i>
+                    <h3 class="text-xl md:text-2xl font-black text-white">Odds Dinâmicas em Tempo Real! 📊</h3>
+                </div>
+                <p class="text-white text-sm md:text-base">
+                    <strong>Como funciona:</strong> Quanto MENOS pessoas apostam em uma faixa, MAIOR fica a odd (mais lucro)! 
+                    As odds mudam automaticamente a cada aposta aprovada. 
+                    <span class="font-bold">🟢 Verde = Odd Alta</span> | 
+                    <span class="font-bold">🟡 Amarelo = Odd Média</span> | 
+                    <span class="font-bold">🔴 Vermelho = Odd Baixa</span>
+                </p>
+            </div>
+
             <!-- Stats Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-pink-200 hover:scale-105 transition-transform">
@@ -249,14 +264,69 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Faixas de peso
+        // Faixas de peso - ODDS DINÂMICAS (calculadas em tempo real)
         const weightRanges = [
-            { min: 2500, max: 2999, label: '2,5kg - 2,9kg', odds: '4.5x' },
-            { min: 3000, max: 3299, label: '3,0kg - 3,2kg', odds: '2.8x' },
-            { min: 3300, max: 3599, label: '3,3kg - 3,5kg', odds: '2.0x' },
-            { min: 3600, max: 3899, label: '3,6kg - 3,8kg', odds: '2.5x' },
-            { min: 3900, max: 4200, label: '3,9kg - 4,2kg', odds: '3.5x' }
+            { min: 2500, max: 2999, label: '2,5kg - 2,9kg', baseOdds: 3.0 },
+            { min: 3000, max: 3299, label: '3,0kg - 3,2kg', baseOdds: 3.0 },
+            { min: 3300, max: 3599, label: '3,3kg - 3,5kg', baseOdds: 3.0 },
+            { min: 3600, max: 3899, label: '3,6kg - 3,8kg', baseOdds: 3.0 },
+            { min: 3900, max: 4200, label: '3,9kg - 4,2kg', baseOdds: 3.0 }
         ];
+
+        // Função para calcular odds dinâmicas
+        function calculateDynamicOdds(bets) {
+            if (bets.length === 0) {
+                // Sem apostas, retorna odds base
+                return weightRanges.map(range => ({
+                    ...range,
+                    odds: range.baseOdds.toFixed(1) + 'x',
+                    dynamicOdds: range.baseOdds,
+                    count: 0,
+                    percentage: 0
+                }));
+            }
+
+            // Contar apostas por faixa
+            const rangeStats = weightRanges.map(range => {
+                const count = bets.filter(bet => bet.weight >= range.min && bet.weight <= range.max).length;
+                return { ...range, count };
+            });
+
+            const totalBets = bets.length;
+            
+            // Calcular odds dinâmicas
+            // Fórmula: quanto MENOS apostas na faixa, MAIOR a odd
+            const rangesWithOdds = rangeStats.map(range => {
+                let dynamicOdds;
+                const percentage = totalBets > 0 ? (range.count / totalBets) * 100 : 0;
+                
+                if (range.count === 0) {
+                    // Nenhuma aposta nesta faixa = odd MUITO alta
+                    dynamicOdds = range.baseOdds * 2.0; // Ex: 3.0 -> 6.0x
+                } else {
+                    // Proporção de apostas nesta faixa
+                    const proportion = range.count / totalBets;
+                    
+                    // Fórmula: odd inversamente proporcional
+                    // Muitas apostas (proporção alta) = odd baixa
+                    // Poucas apostas (proporção baixa) = odd alta
+                    const multiplier = 1 / (proportion * 3 + 0.5);
+                    dynamicOdds = range.baseOdds * multiplier;
+                    
+                    // Limites para evitar extremos
+                    dynamicOdds = Math.max(1.2, Math.min(8.0, dynamicOdds));
+                }
+                
+                return {
+                    ...range,
+                    dynamicOdds: dynamicOdds,
+                    odds: dynamicOdds.toFixed(1) + 'x',
+                    percentage: percentage
+                };
+            });
+
+            return rangesWithOdds;
+        }
 
         let allBets = [];
 
@@ -288,27 +358,33 @@
             }
         }
 
-        // Renderizar faixas de peso
+        // Renderizar faixas de peso com ODDS DINÂMICAS
         function renderWeightRanges() {
             const container = document.getElementById('weightRanges');
             
-            const rangeStats = weightRanges.map(range => {
-                const count = allBets.filter(bet => 
-                    bet.weight >= range.min && bet.weight <= range.max
-                ).length;
-                const percentage = allBets.length > 0 ? (count / allBets.length) * 100 : 0;
-                
-                return { ...range, count, percentage };
-            });
+            // Calcular odds dinâmicas baseadas nas apostas atuais
+            const rangesWithDynamicOdds = calculateDynamicOdds(allBets);
 
-            container.innerHTML = rangeStats.map(range => `
+            container.innerHTML = rangesWithDynamicOdds.map(range => {
+                // Cor da odd baseada no valor (verde = alta, amarelo = média, vermelho = baixa)
+                let oddsColor = 'bg-pink-500';
+                if (range.dynamicOdds >= 4.0) {
+                    oddsColor = 'bg-green-500'; // Odd alta - poucas apostas
+                } else if (range.dynamicOdds >= 2.5) {
+                    oddsColor = 'bg-yellow-500'; // Odd média
+                } else {
+                    oddsColor = 'bg-red-500'; // Odd baixa - muitas apostas
+                }
+
+                return `
                 <div class="bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl p-4 border-2 border-pink-100 hover:border-pink-300 transition-all hover:shadow-md">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-3">
                             <span class="text-2xl font-black text-gray-800">${range.label}</span>
-                            <span class="bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            <span class="${oddsColor} text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
                                 ${range.odds}
                             </span>
+                            ${range.count === 0 ? '<span class="text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded-full font-bold">🔥 SEM APOSTAS!</span>' : ''}
                         </div>
                         <span class="text-lg font-bold text-purple-600">${range.count} aposta${range.count !== 1 ? 's' : ''}</span>
                     </div>
@@ -318,8 +394,10 @@
                             style="width: ${range.percentage}%"
                         ></div>
                     </div>
+                    ${range.percentage > 0 ? `<p class="text-xs text-gray-500 mt-1">${range.percentage.toFixed(1)}% das apostas</p>` : ''}
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // Atualizar estatísticas
@@ -374,9 +452,12 @@
             }
 
             const sortedBets = [...allBets].sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Pegar odds dinâmicas atualizadas
+            const currentOdds = calculateDynamicOdds(allBets);
 
             container.innerHTML = sortedBets.map(bet => {
-                const range = weightRanges.find(r => bet.weight >= r.min && bet.weight <= r.max);
+                const range = currentOdds.find(r => bet.weight >= r.min && bet.weight <= r.max);
                 
                 return `
                     <div class="p-3 bg-pink-50 rounded-lg border border-pink-200 hover:bg-pink-100 transition-colors">
